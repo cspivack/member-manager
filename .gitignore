@@ -1,0 +1,6 @@
+complete/*
+geo/*
+json/*
+source/*
+node_modules/*
+!*.gitkeep
