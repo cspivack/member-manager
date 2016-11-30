@@ -11,4 +11,9 @@ Take a spreadsheet of user info, convert to JSON for parsing/data manipulation/g
 
 - Download the project folder
 - Run `npm install` in the project directory
-- Run `gulp` in the project directory in your favorite command-line interface
+
+### Usage
+- Download a member list CSV, name it `master.csv` and put it in the `source` directory
+- Run `gulp convert` in a command-line interface from  project directory
+- Run `gulp get-info` until there are no more messages to run that command again in the CLI (will probably get rate-limited by the geocoding API)
+- Run `gulp create-csv` to create `cleaned.csv` in the `complete` directory

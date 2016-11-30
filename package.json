@@ -10,6 +10,8 @@
   "license": "ISC",
   "devDependencies": {
     "gulp": "^3.9.1",
+    "gulp-clean": "^0.3.2",
+    "gulp-convert": "^0.2.0",
     "gulp-csv2json": "^0.2.5",
     "gulp-download": "0.0.1",
     "gulp-rename": "^1.2.2",
