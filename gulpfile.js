@@ -69,8 +69,10 @@ gulp.task('back-to-csv', function() {
 
 function cleanData(iteratee) {
 
-	delete iteratee.Geodata;
+	// delete iteratee.Geodata;
 	delete iteratee.randomString;
+
+	iteratee.Geodata = JSON.stringify(iteratee.Geodata);
 
 	return iteratee;
 
@@ -80,7 +82,7 @@ function getInfo(iteratee) {
 
 	var allSet = false;
 
-	if(!iteratee.randomString || !iteratee.randomString.length) {
+	if((!iteratee.Geodata || !iteratee.Geodata.length) && (!iteratee.randomString || !iteratee.randomString.length)) {
 		iteratee.randomString = randomString(12);
 	} else {
 
@@ -117,6 +119,9 @@ function getInfo(iteratee) {
 
 function getCounty(geodata) {
 
+	if(typeof geodata.results[0]==='undefined')
+		return 'N/A';
+
 	var components = geodata.results[0].address_components;
 
 	for(var a in components) {
@@ -126,7 +131,7 @@ function getCounty(geodata) {
 
 	}
 
-	return '';
+	return 'N/A';
 
 }
 
