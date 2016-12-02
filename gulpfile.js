@@ -6,8 +6,12 @@ var gulp = require('gulp'),
 	download = require('gulp-download'),
 	clean = require('gulp-clean'),
 	fs = require('fs'),
-	convert = require('gulp-convert');
+	convert = require('gulp-convert'),
+	geolocator = require('geolocator');
 
+
+var fullList = fs.existsSync('./json/master.json') ? require('./json/master.json') : false;
+var callerInfo = allCallerInfo();
 
 gulp.task('default', function() {
 
@@ -67,6 +71,42 @@ gulp.task('back-to-csv', function() {
 
 });
 
+function getCaller(iteratee) {
+
+	if(fullList) {
+		var thisCaller = _.find(fullList, function(item) {
+			return item['Email 1']===iteratee;
+		});
+
+		return {
+			name: thisCaller['First name']+' '+thisCaller['Last name'],
+			coords: extractLatLng(thisCaller)
+		};
+
+	} else {
+		return iteratee;
+	}
+
+}
+
+function extractLatLng(person) {
+
+	var geo = typeof person.Geodata==='string' ? JSON.parse(person.Geodata) : person.Geodata;
+
+	if(typeof geo.results[0]==='undefined')
+		return {};
+
+	return geo.results[0].geometry.location;
+
+}
+
+function allCallerInfo() {
+
+	var callers = require('./callers.json');
+	return fullList ? _.map(callers, getCaller) : false;
+
+}
+
 function cleanData(iteratee) {
 
 	// delete iteratee.Geodata;
@@ -96,13 +136,16 @@ function getInfo(iteratee) {
 
 			} else {
 
-				// if(!iteratee['Who\'s contacting?'] || !iteratee['Who\'s contacting?'].length) {
-				// 	iteratee['Who\'s contacting?'] = getContact(geodata);
-				// } else {
+				if(!iteratee['Who\'s contacting?'] || !iteratee['Who\'s contacting?'].length) {
+
+					iteratee['Who\'s contacting?'] = getContact(iteratee);
+				
+				} else {
+				
 					allSet = true;
 					console.log('All set!');
 
-				// }
+				}
 
 			}
 
@@ -117,9 +160,41 @@ function getInfo(iteratee) {
 
 }
 
+function getContact(person) {
+
+	if(!callerInfo)
+		return '';
+
+	var coords = extractLatLng(person);
+
+	_.each(callerInfo, function(caller) {
+		caller.distance = geolocator.calcDistance({
+			from: {
+				latitude: coords.lat,
+				longitude: coords.lng
+			},
+			to: {
+				latitude: caller.coords.lat,
+				longitude: caller.coords.lng
+			},
+		    formula: geolocator.DistanceFormula.HAVERSINE,
+		    unitSystem: geolocator.UnitSystem.METRIC
+		});
+	});
+
+	var closest = _.minBy(callerInfo, 'distance');
+
+	if(typeof closest==='undefined')
+		return '';
+
+	return closest.name;
+
+
+}
+
 function getCounty(geodata) {
 
-	if(typeof geodata.results[0]==='undefined')
+	if(typeof geodata.results==='undefined' || typeof geodata.results[0]==='undefined')
 		return 'N/A';
 
 	var components = geodata.results[0].address_components;
